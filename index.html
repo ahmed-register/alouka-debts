@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1b1f3b">
+<title>أحمد علوكه</title>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b1f3b;--gold:#b8892b;--bg:#eef0f6;--card:#fff;--line:#d9dde9;--debt:#b3261e;--pay:#1f7a4d;--mute:#6b7089}
+*{box-sizing:border-box;margin:0}
+body{font-family:Cairo,system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;padding-bottom:90px}
+header{background:var(--ink);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;padding-top:calc(14px + env(safe-area-inset-top,0px))}
+header svg{width:54px;height:54px;flex:none}
+header b{font-size:20px;display:block}
+header small{color:#cbb27a}
+main{max-width:620px;margin:0 auto;padding:14px}
+.tot{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.box small{color:var(--mute)}
+.box strong{display:block;font-size:20px;margin-top:2px}
+input,select{font:inherit;width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+.search{margin:12px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 12px;background:var(--card);border-bottom:1px solid var(--line);cursor:pointer}
+.list{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.row:last-child{border-bottom:0}
+.nm{font-weight:600}.ph{font-size:13px;color:var(--mute)}
+.amt{text-align:left;font-weight:700;line-height:1.3}
+.owe{color:var(--debt)}.ok{color:var(--pay)}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 14px;background:var(--ink);color:#fff;font-weight:600}
+button.gold{background:var(--gold)}button.red{background:var(--debt)}button.green{background:var(--pay)}button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.fab{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));left:18px;right:18px;max-width:584px;margin:auto;padding:14px;font-size:17px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.acts .wide{grid-column:1/-1}
+.empty{padding:30px 16px;text-align:center;color:var(--mute)}
+.sheet{position:fixed;inset:0;background:rgba(27,31,59,.55);display:none;align-items:flex-end;justify-content:center;z-index:5}
+.sheet.on{display:flex}
+.sheet>div{background:#fff;width:100%;max-width:620px;border-radius:18px 18px 0 0;padding:18px;display:grid;gap:10px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+.sheet label{font-size:14px;color:var(--mute)}
+.tx{display:flex;justify-content:space-between;gap:8px;padding:11px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+.tx small{color:var(--mute);display:block}
+.tx button{padding:4px 9px;background:#fff;color:var(--debt);border:1px solid var(--line)}
+.back{margin:4px 0 10px}
+.foot{display:flex;gap:8px;margin-top:16px}.foot button{flex:1}
+@media (prefers-reduced-motion:no-preference){.sheet>div{animation:up .18s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.5}}}
+</style>
+</head>
+<body>
+<header>
+<svg viewBox="0 0 120 120" role="img" aria-label="العلي">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d98b"/><stop offset="1" stop-color="#b8892b"/></linearGradient></defs>
+<circle cx="60" cy="60" r="56" fill="#232850" stroke="url(#g)" stroke-width="3"/>
+<circle cx="60" cy="60" r="49" fill="none" stroke="url(#g)" stroke-width=".8" stroke-dasharray="2 4"/>
+<path d="M30 30 Q60 18 90 30" fill="none" stroke="url(#g)" stroke-width="1.6"/>
+<path d="M30 92 Q60 104 90 92" fill="none" stroke="url(#g)" stroke-width="1.6"/>
+<circle cx="60" cy="22" r="2.6" fill="url(#g)"/><circle cx="60" cy="98" r="2.6" fill="url(#g)"/>
+<text x="60" y="73" text-anchor="middle" font-family="Aref Ruqaa,serif" font-size="38" fill="url(#g)">العلي</text>
+</svg>
+<div><b>أحمد علوكه</b><small>دفتر ديون الزبائن</small></div>
+</header>
+<main id="app"></main>
+<div class="sheet" id="sheet"><div id="sheetBody"></div></div>
+<script>
+const KEY='alouka_v1';
+let S={customers:[]},view=null,q='';
+try{const r=localStorage.getItem(KEY);if(r)S=JSON.parse(r)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){alert('تعذّر الحفظ على هذا الجهاز')}};
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Number(n).toLocaleString('en-US');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const bal=c=>{const b={IQD:0,USD:0};c.tx.forEach(t=>b[t.cur]+=t.type==='debt'?t.amt:-t.amt);return b};
+const balTxt=b=>{const p=[];if(b.IQD)p.push(fmt(b.IQD)+' د.ع');if(b.USD)p.push(fmt(b.USD)+' $');return p.join(' + ')||'مسدَّد'};
+function sheet(title,fields,ok,label){
+  $('#sheetBody').innerHTML='<b>'+esc(title)+'</b>'+fields.map(f=>'<div><label>'+f.l+'</label>'+(f.o?'<select id="f_'+f.k+'">'+f.o.map(o=>'<option value="'+o[0]+'">'+o[1]+'</option>').join('')+'</select>':'<input id="f_'+f.k+'" type="'+(f.t||'text')+'" inputmode="'+(f.m||'text')+'" value="'+esc(f.v||'')+'">')+'</div>').join('')+'<button class="gold" id="okb">'+(label||'حفظ')+'</button><button class="ghost" id="cn">إلغاء</button>';
+  $('#sheet').classList.add('on');
+  $('#cn').onclick=close;
+  $('#okb').onclick=()=>{const v={};fields.forEach(f=>v[f.k]=$('#f_'+f.k).value.trim());if(ok(v)!==false)close()};
+  const first=$('#sheetBody input,#sheetBody select');if(first)first.focus();
+}
+const close=()=>$('#sheet').classList.remove('on');
+$('#sheet').onclick=e=>{if(e.target.id==='sheet')close()};
+function addCustomer(){sheet('زبون جديد',[{k:'n',l:'الاسم'},{k:'p',l:'رقم الموبايل (اختياري)',t:'tel',m:'tel'}],v=>{if(!v.n){alert('اكتب اسم الزبون');return false}S.customers.push({id:uid(),name:v.n,phone:v.p,tx:[]});save();render()})}
+function addTx(id,type){
+  const c=S.customers.find(x=>x.id===id);
+  sheet(type==='debt'?'تسجيل دين على '+c.name:'تسجيل تسديد من '+c.name,[{k:'a',l:'المبلغ',t:'text',m:'decimal'},{k:'c',l:'العملة',o:[['IQD','دينار'],['USD','دولار']]},{k:'d',l:'ملاحظة (اختياري)'}],v=>{
+    const a=parseFloat(v.a.replace(/,/g,''));
+    if(!(a>0)){alert('اكتب مبلغاً صحيحاً أكبر من صفر');return false}
+    const last=c.tx[c.tx.length-1];
+    if(last&&last.type===type&&last.amt===a&&last.cur===v.c&&Date.now()-last.ts<120000&&!confirm('نفس المبلغ سُجّل قبل قليل. تسجله مرة ثانية؟'))return false;
+    c.tx.push({id:uid(),type,cur:v.c,amt:a,note:v.d,ts:Date.now()});save();render()},type==='debt'?'سجّل الدين':'سجّل التسديد');
+}
+function wa(c){
+  const b=bal(c);if(!b.IQD&&!b.USD){alert('الزبون ما عليه مبلغ');return}
+  let p=(c.phone||'').replace(/\D/g,'');if(!p){alert('أضف رقم موبايل للزبون أولاً');return}
+  if(p.startsWith('0'))p='964'+p.slice(1);
+  const m='السلام عليكم '+c.name+'، تذكير ودّي: المبلغ المطلوب منك '+balTxt(b)+'. شكراً لتعاملك.';
+  window.open('https://wa.me/'+p+'?text='+encodeURIComponent(m),'_blank');
+}
+function render(){
+  const a=$('#app');
+  if(view){
+    const c=S.customers.find(x=>x.id===view);if(!c){view=null;return render()}
+    const b=bal(c);
+    a.innerHTML='<button class="ghost back" id="bk">رجوع للزبائن</button><div class="box"><div class="nm">'+esc(c.name)+'</div><div class="ph">'+esc(c.phone||'بدون رقم')+'</div><strong class="'+((b.IQD>0||b.USD>0)?'owe':'ok')+'">'+balTxt(b)+'</strong></div>'
+    +'<div class="acts"><button class="red" id="d">سجّل دين</button><button class="green" id="p">سجّل تسديد</button><button class="gold wide" id="w">تذكير على واتساب</button></div>'
+    +(c.tx.length?'<div class="list">'+c.tx.slice().reverse().map(t=>'<div class="tx"><div><b class="'+(t.type==='debt'?'owe':'ok')+'">'+(t.type==='debt'?'دين ':'تسديد ')+fmt(t.amt)+(t.cur==='USD'?' $':' د.ع')+'</b><small>'+new Date(t.ts).toLocaleDateString('en-GB')+(t.note?' · '+esc(t.note):'')+'</small></div><button data-x="'+t.id+'" aria-label="حذف الحركة">حذف</button></div>').join('')+'</div>':'<div class="empty">ما كو حركات بعد. سجّل أول دين.</div>')
+    +'<div class="foot"><button class="ghost" id="ed">تعديل الزبون</button><button class="ghost" id="rm">حذف الزبون</button></div>';
+    $('#bk').onclick=()=>{view=null;render()};
+    $('#d').onclick=()=>addTx(c.id,'debt');$('#p').onclick=()=>addTx(c.id,'pay');$('#w').onclick=()=>wa(c);
+    a.querySelectorAll('[data-x]').forEach(x=>x.onclick=()=>{if(confirm('تحذف هذه الحركة؟')){c.tx=c.tx.filter(t=>t.id!==x.dataset.x);save();render()}});
+    $('#ed').onclick=()=>sheet('تعديل الزبون',[{k:'n',l:'الاسم',v:c.name},{k:'p',l:'رقم الموبايل',t:'tel',m:'tel',v:c.phone}],v=>{if(!v.n)return false;c.name=v.n;c.phone=v.p;save();render()});
+    $('#rm').onclick=()=>{if(confirm('تحذف الزبون وكل حركاته؟')){S.customers=S.customers.filter(x=>x.id!==c.id);save();view=null;render()}};
+    return;
+  }
+  const t={IQD:0,USD:0};S.customers.forEach(c=>{const b=bal(c);t.IQD+=b.IQD;t.USD+=b.USD});
+  const L=S.customers.filter(c=>c.name.includes(q)).sort((x,y)=>bal(y).IQD-bal(x).IQD);
+  a.innerHTML='<div class="tot"><div class="box"><small>إلك بالدينار</small><strong>'+fmt(t.IQD)+' د.ع</strong></div><div class="box"><small>إلك بالدولار</small><strong>'+fmt(t.USD)+' $</strong></div></div>'
+  +'<input class="search" id="s" placeholder="ابحث عن زبون" value="'+esc(q)+'">'
+  +(L.length?'<div class="list">'+L.map(c=>{const b=bal(c);return '<div class="row" data-id="'+c.id+'" tabindex="0"><div><div class="nm">'+esc(c.name)+'</div><div class="ph">'+esc(c.phone||'')+'</div></div><div class="amt '+((b.IQD>0||b.USD>0)?'owe':'ok')+'">'+balTxt(b)+'</div></div>'}).join('')+'</div>':'<div class="empty">'+(S.customers.length?'ما كو زبون بهذا الاسم.':'ما كو زبائن بعد. اضغط «زبون جديد» وابدأ.')+'</div>')
+  +'<div class="foot"><button class="ghost" id="ex">نسخة احتياطية</button><button class="ghost" id="im">استرجاع نسخة</button></div>'
+  +'<button class="gold fab" id="ad">زبون جديد</button>';
+  const s=$('#s');s.oninput=e=>{q=e.target.value;const p=e.target.selectionStart;render();const n=$('#s');n.focus();n.setSelectionRange(p,p)};
+  a.querySelectorAll('.row').forEach(r=>{const go=()=>{view=r.dataset.id;render();scrollTo(0,0)};r.onclick=go;r.onkeydown=e=>{if(e.key==='Enter')go()}});
+  $('#ad').onclick=addCustomer;
+  $('#ex').onclick=()=>{const u=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));const l=document.createElement('a');l.href=u;l.download='alouka-backup-'+new Date().toISOString().slice(0,10)+'.json';l.click();setTimeout(()=>URL.revokeObjectURL(u),2000)};
+  $('#im').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=()=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.customers))throw 0;if(confirm('هذا يستبدل البيانات الحالية. تكمل؟')){S=d;save();render()}}catch(e){alert('الملف غير صالح')}};r.readAsText(i.files[0])};i.click()};
+}
+render();
+</script>
+</body>
+</html>
